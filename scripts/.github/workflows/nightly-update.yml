@@ -1,0 +1,85 @@
+name: Nightly CMS Medicare Data Update
+
+on:
+  # Run every night at 2:00 AM UTC (9 PM EST / 10 PM EDT)
+  schedule:
+    - cron: "0 2 * * *"
+
+  # Allow manual trigger with optional year override
+  workflow_dispatch:
+    inputs:
+      year:
+        description: "CMS data year (default: current year)"
+        required: false
+        default: ""
+      force:
+        description: "Force update even if no data change"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # requests is already available; no extra packages needed
+      # (process_pbp.py uses only stdlib: urllib, json, re, zipfile, io)
+
+      - name: Determine year to use
+        id: year
+        run: |
+          if [ -n "${{ github.event.inputs.year }}" ]; then
+            echo "year=${{ github.event.inputs.year }}" >> $GITHUB_OUTPUT
+          else
+            echo "year=$(date +%Y)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download and process CMS PBP data
+        id: process
+        run: |
+          echo "Processing year: ${{ steps.year.outputs.year }}"
+          python scripts/process_pbp.py \
+            --year ${{ steps.year.outputs.year }} \
+            --html pbp-plan-comparator.html
+        continue-on-error: false
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet pbp-plan-comparator.html; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes to HTML — data is already up-to-date."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "HTML was updated."
+          fi
+
+      - name: Commit and push updated HTML
+        if: steps.changes.outputs.changed == 'true' || github.event.inputs.force == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pbp-plan-comparator.html
+          git commit -m "chore: update CMS Medicare data for ${{ steps.year.outputs.year }} [$(date -u +%Y-%m-%d)]"
+          git push
+
+      - name: Summary
+        run: |
+          echo "### Medicare Data Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Year | ${{ steps.year.outputs.year }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Data Changed | ${{ steps.changes.outputs.changed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered By | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Run Date | $(date -u +%Y-%m-%d) |" >> $GITHUB_STEP_SUMMARY

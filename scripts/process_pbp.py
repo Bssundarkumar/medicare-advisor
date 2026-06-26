@@ -409,8 +409,35 @@ def inject_into_html(html_path, plans, state_index, year):
     else:
         html = html.replace('<title>', f'{meta_block}\n<title>', 1)
 
-    # Update page title year
+    # Update all year references and plan counts throughout the HTML
+    plan_count = f"{len(plans):,}"
+
+    # <title> and toolbar heading
     html = re.sub(r'20\d\d Medicare Plan Advisor', f'{year} Medicare Plan Advisor', html)
+
+    # <h1> heading (e.g. "2026 <span>Medicare Plan</span> Advisor")
+    html = re.sub(r'\b20\d\d\b(<\s*span[^>]*>\s*Medicare Plan)', f'{year}\\1', html)
+
+    # zip-desc paragraph (HTML + JS string)
+    html = re.sub(
+        r'all 20\d\d Medicare plans',
+        f'all {year} Medicare plans',
+        html
+    )
+
+    # zip-meta coverage line  (e.g. "8,083 CMS-filed 2026 Medicare")
+    html = re.sub(
+        r'[\d,]+ CMS-filed 20\d\d Medicare[^<]*',
+        f'{plan_count} CMS-filed {year} Medicare &amp; Part D plans across the US',
+        html
+    )
+
+    # stats row "Total Plans" number
+    html = re.sub(
+        r'(<div class="stat-num">)\d[\d,]*(<\/div><div class="stat-lbl">Total Plans)',
+        f'\\g<1>{plan_count}\\2',
+        html
+    )
 
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
@@ -427,7 +454,7 @@ def inject_into_html(html_path, plans, state_index, year):
 def main():
     parser = argparse.ArgumentParser(description="Update CMS Medicare PBP data in the HTML app")
     parser.add_argument("--year", type=int, default=datetime.now().year,
-                        help="CMS data year (default: current year)")
+                        help="Year to fetch (e.g. 2026 downloads pbp-benefits-2026-json.zip)")
     parser.add_argument("--html", default="pbp-plan-comparator.html",
                         help="Path to the HTML app file")
     parser.add_argument("--zip", default=None,

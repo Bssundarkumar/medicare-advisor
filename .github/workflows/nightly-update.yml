@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       year:
-        description: "CMS data year (default: current year)"
+        description: "Year to fetch (e.g. 2026 downloads pbp-benefits-2026-json.zip)"
         required: false
         default: ""
       force:

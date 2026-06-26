@@ -87,14 +87,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* ── STEP 2: BROWSE ── */
 #step2{display:none;min-height:calc(100vh - 54px)}
-.s2-layout{display:grid;grid-template-columns:290px 1fr;height:calc(100vh - 54px)}
-.s2-sidebar{background:var(--s1);border-right:1px solid var(--border);padding:16px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
+/* Page scrolls naturally; sidebar sticks while plans flow below */
+.s2-layout{display:grid;grid-template-columns:290px 1fr;align-items:start}
+.s2-sidebar{background:var(--s1);border-right:1px solid var(--border);padding:16px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;position:sticky;top:54px;height:calc(100vh - 54px)}
 .s2-label{font-size:.67rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:3px}
 .s2-input{width:100%;padding:7px 10px;background:var(--s2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-size:.8rem;outline:none}
 .s2-input:focus{border-color:var(--accent)}
 .filter-row{display:flex;gap:6px}
 .filter-row .s2-input{margin:0}
-.s2-main{overflow-y:auto;padding:18px 20px;flex:1}
+.s2-main{padding:18px 20px}
 .s2-main-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 /* Beneficiary grid */
 .plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
@@ -440,6 +441,8 @@ input[type=range].priority-slider{flex:1;min-width:120px;accent-color:var(--gree
 /* Cost calculator */
 .cost-calc-header{background:linear-gradient(90deg,#ede9fe,#f5f3ff)!important;border-bottom-color:var(--border2)!important}
 .cost-calc-header h3{color:var(--indigo)!important}
+.util-btn.active{background:#ede9fe!important;border-color:#7c3aed!important;color:var(--indigo)!important}
+.util-btn:hover{border-color:var(--indigo)!important;color:var(--indigo)!important;background:#f5f3ff!important}
 .cost-table thead th{background:var(--s2)!important;color:var(--muted)!important}
 .cost-table thead th.plan-col.cost-winner-col{background:#dcfce7!important;color:#166534!important;border-bottom-color:var(--green)!important}
 .cost-table tbody tr:nth-child(even) td{background:#f0f6ff!important}
@@ -447,6 +450,8 @@ input[type=range].priority-slider{flex:1;min-width:120px;accent-color:var(--gree
 .cost-saving-badge{background:#ede9fe!important;border-color:#ddd6fe!important;color:var(--indigo)!important}
 .cost-saving-badge.best{background:#dcfce7!important;border-color:#86efac!important;color:var(--green)!important}
 .cost-total-row .cost-val{color:var(--indigo)!important}
+.priority-row span.cost-lbl{background:#eff6ff!important;border-color:#bfdbfe!important;color:#1d4ed8!important}
+.priority-row span.qual-lbl{background:#f0fdf4!important;border-color:#86efac!important;color:#166534!important}
 /* Final recommendation */
 .final-rec{background:linear-gradient(135deg,#f0fff4,#f0f9ff,#f5fff0)!important;border-color:#86efac!important}
 .final-rec-title{color:var(--green)!important}
@@ -607,6 +612,7 @@ input[type=range].priority-slider{flex:1;min-width:120px;accent-color:var(--gree
 
   /* Browse — sidebar becomes a drawer */
   .s2-layout{grid-template-columns:1fr!important;height:auto!important;position:relative}
+  .s2-sidebar{position:fixed!important;height:100%!important;top:0!important}
   .s2-sidebar{
     display:none;
     position:fixed;top:0;left:0;right:0;bottom:0;
@@ -674,6 +680,7 @@ input[type=range].priority-slider{flex:1;min-width:120px;accent-color:var(--gree
 <!-- HEADER -->
 <header class="step-header">
   <div class="step-logo">Medicare<span>Advisor</span></div>
+  <div id="data-badge" style="font-size:0.78rem;color:var(--muted);margin-left:8px;white-space:nowrap;display:none"></div>
   <nav class="steps" id="step-nav" style="display:none">
     <div class="step-item" id="sh1" onclick="gotoStep(1)">
       <div class="step-num" id="sn1">1</div>
@@ -779,9 +786,9 @@ input[type=range].priority-slider{flex:1;min-width:120px;accent-color:var(--gree
       </div>
       <div>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 0">
-          <input type="checkbox" id="s2local" onchange="applyFilters()" checked
+          <input type="checkbox" id="s2local" onchange="applyFilters()"
             style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)"/>
-          <span style="font-size:.78rem;font-weight:600;color:var(--txt)">&#128205; This ZIP area only <span style="font-weight:400;color:var(--muted)">(uncheck to include nationwide)</span></span>
+          <span style="font-size:.78rem;font-weight:600;color:var(--txt)">&#128205; Local plans only <span style="font-weight:400;color:var(--muted)">(check to hide nationwide plans)</span></span>
         </label>
       </div>
       <div id="agent-id-filter" style="display:none">
@@ -821,7 +828,7 @@ input[type=range].priority-slider{flex:1;min-width:120px;accent-color:var(--gree
       <button onclick="clearFilters()" style="padding:5px 10px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:.68rem;cursor:pointer;width:100%;margin-top:2px" title="Reset all filters">&#10005; Clear Filters</button>
       <div id="s2count" style="font-size:.7rem;color:var(--muted);margin-top:4px;line-height:1.5"></div>
     </aside>
-    <div style="display:flex;flex-direction:column;overflow:hidden">
+    <div>
       <div class="s2-main" id="s2main">
         <div class="s2-main-header">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%">
@@ -903,6 +910,25 @@ function selectRole(role){
   document.getElementById('step-nav').style.display='flex';
   setTimeout(()=>gotoStep(1), 220);
 }
+
+// ── DATA BADGE (year + last updated from DATA_META comment) ─────────────────
+(function(){
+  try{
+    const it=document.createTreeWalker(document.head,NodeFilter.SHOW_COMMENT);
+    let node;
+    while((node=it.nextNode())){
+      const m=node.nodeValue.match(/DATA_META\s+year="(\d+)"\s+updated="([^"]+)"\s+plans="(\d+)"/);
+      if(m){
+        const badge=document.getElementById('data-badge');
+        if(badge){
+          badge.textContent=`Data: ${m[1]} · ${m[3]} plans · ${m[2]}`;
+          badge.style.display='block';
+        }
+        break;
+      }
+    }
+  }catch(e){}
+})();
 
 // ── MOBILE FILTER TOGGLE ─────────────────────────────────────────────────────
 function toggleMobileFilters(){
@@ -1043,7 +1069,7 @@ function changeZipFilter(){
   ['s2search','s2id'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['s2carrier','s2type','s2rx','s2snp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('s2sort').value='score';
-  const lo=document.getElementById('s2local');if(lo)lo.checked=true;
+  const lo=document.getElementById('s2local');if(lo)lo.checked=false;
   renderStep2();
 }
 const _nationwideSet=new Set(SI.n);
@@ -1090,7 +1116,8 @@ function applyFilters(){
   if(hasFilters||localOnly) countHtml+=` of ${baseCount.toLocaleString()} in ${regionInfo.state||'area'}`;
   if(!localOnly&&nwCount>0) countHtml+=`<br><span style="color:var(--muted);font-size:.65rem">&#127758; +${nwCount} nationwide plans included</span>`;
   document.getElementById('s2count').innerHTML=countHtml;
-  renderPlanGrid(plans.slice(0,200));
+  FP=plans; // store full filtered list globally
+  renderPlanGrid(FP, 0);
   // Auto-close mobile sidebar after filtering
   const sb=document.getElementById('s2sidebar');
   if(sb&&sb.classList.contains('mobile-open')&&window.innerWidth<=700){
@@ -1098,50 +1125,76 @@ function applyFilters(){
     document.body.style.overflow='';
   }
 }
-function renderPlanGrid(plans){
+let FP=[];
+const PAGE_SIZE=50;
+function loadMorePlans(){
+  const grid=document.getElementById('plan-grid');
+  const shown=grid.querySelectorAll('.pcard').length;
+  const next=FP.slice(shown, shown+PAGE_SIZE);
+  const btn=document.getElementById('load-more-btn');
+  if(btn) btn.remove();
+  next.forEach(p=>{
+    const div=document.createElement('div');
+    div.innerHTML=planCardHTML(p);
+    grid.appendChild(div.firstChild);
+  });
+  const nowShown=grid.querySelectorAll('.pcard').length;
+  if(nowShown<FP.length) appendLoadMoreBtn(grid, nowShown);
+}
+function appendLoadMoreBtn(grid, shown){
+  const rem=FP.length-shown;
+  const btn=document.createElement('div');
+  btn.id='load-more-btn';
+  btn.style.cssText='grid-column:1/-1;text-align:center;padding:16px 0';
+  btn.innerHTML=`<button onclick="loadMorePlans()" style="padding:12px 32px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer">Load ${Math.min(rem,PAGE_SIZE)} more plans (${rem} remaining)</button>`;
+  grid.appendChild(btn);
+}
+function renderPlanGrid(plans, offset){
   const grid=document.getElementById('plan-grid');
   const isAgent=userRole==='agent';
   if(!plans.length){grid.innerHTML='<div class="empty">No plans match your filters</div>';return;}
-  grid.innerHTML=plans.map(p=>{
-    const isSel=sel.includes(p.id);
-    const hasDen=p.suppBen.some(c=>['1a1','1a2','17a1','17b1'].includes(c));
-    const hasVis=p.suppBen.some(c=>['4c1','4c2'].includes(c));
-    const hasHear=p.suppBen.includes('7b1');
-    const hasFit=p.suppBen.includes('7f')||p.medBen.includes('7f');
-    const hasOTC=p.suppBen.includes('10b1');
-    const typeTag=p.type.includes('HMO')?'tag-hmo':p.type.includes('PPO')?'tag-ppo':p.type.includes('Drug')?'tag-pdp':p.type.includes('PACE')?'tag-pace':'tag-hmo';
-    const moopCls=p.moop?(p.moop<=3500?'good':p.moop<=6500?'mid':'bad'):'na';
-    const rxCls=p.rx?(p.rxDed===0||p.rxDed===null?'good':p.rxDed<=300?'mid':'bad'):'na';
-    const pct=Math.round(p._score/135*100);
-    return `<div class="pcard${isSel?' sel':''}" onclick="togglePlan('${p.id}')">
-      <div class="pc-top">
-        <div style="flex:1">
-          <div class="pc-name">${eh(p.name)}</div>
-          ${isAgent?`<div class="pc-id">${p.id}</div>`:''}
-        </div>
-        <div class="pc-check">&#10003;</div>
+  grid.innerHTML=plans.slice(0,PAGE_SIZE).map(p=>planCardHTML(p)).join('');
+  if(plans.length>PAGE_SIZE) appendLoadMoreBtn(grid, PAGE_SIZE);
+}
+function planCardHTML(p){
+  const isAgent=userRole==='agent';
+  const isSel=sel.includes(p.id);
+  const hasDen=p.suppBen.some(c=>['1a1','1a2','17a1','17b1'].includes(c));
+  const hasVis=p.suppBen.some(c=>['4c1','4c2'].includes(c));
+  const hasHear=p.suppBen.includes('7b1');
+  const hasFit=p.suppBen.includes('7f')||p.medBen.includes('7f');
+  const hasOTC=p.suppBen.includes('10b1');
+  const typeTag=p.type.includes('HMO')?'tag-hmo':p.type.includes('PPO')?'tag-ppo':p.type.includes('Drug')?'tag-pdp':p.type.includes('PACE')?'tag-pace':'tag-hmo';
+  const moopCls=p.moop?(p.moop<=3500?'good':p.moop<=6500?'mid':'bad'):'na';
+  const rxCls=p.rx?(p.rxDed===0||p.rxDed===null?'good':p.rxDed<=300?'mid':'bad'):'na';
+  return `<div class="pcard${isSel?' sel':''}" onclick="togglePlan('${p.id}')">
+    <div class="pc-top">
+      <div style="flex:1">
+        <div class="pc-name">${eh(p.name)}</div>
+        ${isAgent?`<div class="pc-id">${p.id}</div>`:''}
       </div>
-      <div class="pc-org">${eh(p.org)}</div>
-      <div class="pc-geo">${p._nationwide?'&#127758; <span style=\'color:var(--muted);font-size:.68rem\'>Nationwide</span>':'&#128205; '+eh(p.geo)}</div>
-      <div class="pc-tags">
-        <span class="tag ${typeTag}">${eh(p.type)}</span>
-        ${p.rx?'<span class="tag tag-rx">Part D</span>':''}
-        ${p.snp?`<span class="tag tag-snp">${isAgent?'SNP: '+eh(p.snpType):'SNP'}</span>`:''}
-        ${hasDen?'<span class="tag tag-den">&#129461; Dental</span>':''}
-        ${hasVis?'<span class="tag tag-vis">&#128064; Vision</span>':''}
-        ${hasHear?'<span class="tag tag-hear">&#128266; Hearing</span>':''}
-        ${hasFit?'<span class="tag tag-fit">&#127947; Fitness</span>':''}
-        ${hasOTC?'<span class="tag tag-otc">&#128715; OTC</span>':''}
-      </div>
-      <div class="pc-costs">
-        <div class="pc-cost"><div class="pc-cost-lbl">MOOP</div><div class="pc-cost-val ${moopCls}">${p.moop?'$'+p.moop.toLocaleString():'N/A'}</div></div>
-        <div class="pc-cost"><div class="pc-cost-lbl">Rx Ded.</div><div class="pc-cost-val ${rxCls}">${p.rx?(p.rxDed!==null?'$'+p.rxDed:'$0'):'No Rx'}</div></div>
-        ${isAgent
-          ? `<div class="pc-cost"><div class="pc-cost-lbl">Tiers</div><div class="pc-cost-val ${p.rx?'good':'na'}">${p.rx?(p.rxTiers||'?')+' T':'N/A'}</div></div>`
-          : `<div class="pc-cost"><div class="pc-cost-lbl">Score</div><div class="pc-cost-val good">${p._score}pts</div></div>`}
-      </div>
-    </div>`;
-  }).join('');
+      <div class="pc-check">&#10003;</div>
+    </div>
+    <div class="pc-org">${eh(p.org)}</div>
+    <div class="pc-geo">${p._nationwide?'&#127758; <span style=\'color:var(--muted);font-size:.68rem\'>Nationwide</span>':'&#128205; '+eh(p.geo)}</div>
+    <div class="pc-tags">
+      <span class="tag ${typeTag}">${eh(p.type)}</span>
+      ${p.rx?'<span class="tag tag-rx">Part D</span>':''}
+      ${p.snp?`<span class="tag tag-snp">${isAgent?'SNP: '+eh(p.snpType):'SNP'}</span>`:''}
+      ${hasDen?'<span class="tag tag-den">&#129461; Dental</span>':''}
+      ${hasVis?'<span class="tag tag-vis">&#128064; Vision</span>':''}
+      ${hasHear?'<span class="tag tag-hear">&#128266; Hearing</span>':''}
+      ${hasFit?'<span class="tag tag-fit">&#127947; Fitness</span>':''}
+      ${hasOTC?'<span class="tag tag-otc">&#128715; OTC</span>':''}
+    </div>
+    <div class="pc-costs">
+      <div class="pc-cost"><div class="pc-cost-lbl">MOOP</div><div class="pc-cost-val ${moopCls}">${p.moop?'$'+p.moop.toLocaleString():'N/A'}</div></div>
+      <div class="pc-cost"><div class="pc-cost-lbl">Rx Ded.</div><div class="pc-cost-val ${rxCls}">${p.rx?(p.rxDed!==null?'$'+p.rxDed:'$0'):'No Rx'}</div></div>
+      ${isAgent
+        ? `<div class="pc-cost"><div class="pc-cost-lbl">Tiers</div><div class="pc-cost-val ${p.rx?'good':'na'}">${p.rx?(p.rxTiers||'?')+' T':'N/A'}</div></div>`
+        : `<div class="pc-cost"><div class="pc-cost-lbl">Score</div><div class="pc-cost-val good">${p._score}pts</div></div>`}
+    </div>
+  </div>`;
 }
 function togglePlan(id){
   const i=sel.indexOf(id);
@@ -1420,9 +1473,9 @@ function buildComparison(){
 
   const s3=document.getElementById('s3content');
   s3.classList.remove('reveal');
-  const costCalcHTML=isAgent?buildCostCalc(plans):'';
+  const costCalcHTML=buildCostCalc(plans);
   s3.innerHTML=toolbarHTML+winnerHTML+costCalcHTML+tableHTML+suggestHTML;
-  if(isAgent) setTimeout(recalcCosts, 50);
+  setTimeout(recalcCosts, 50);
   void s3.offsetWidth;
   s3.classList.add('reveal');
 }
@@ -1558,11 +1611,11 @@ function recalcCosts() {
   const rowData = [
     ['In-Net MOOP (cap)',  r=>r.moop,         (v,r)=>{
       const hit = r.medOOP >= v;
-      return `<span class="cost-val" style="color:${v<=3500?'var(--green)':v<=6500?'var(--yellow)':'var(--red)'}">${v?fmtMoney(v):'N/A'}</span>${hit?` <span class="cost-saving-badge" style="background:#1a0a0a;border-color:#ef444455;color:#fca5a5">&#9888; Cap hit</span>`:''}`;
+      return `<span class="cost-val" style="color:${v<=3500?'var(--green)':v<=6500?'var(--yellow)':'var(--red)'}">${v?fmtMoney(v):'N/A'}</span>${hit?` <span class="cost-saving-badge" style="background:#fff0f0;border-color:#fca5a5;color:#dc2626">&#9888; Cap hit</span>`:''}`;
     }],
     ['Est. Medical OOP',  r=>r.medOOP,        (v,r)=>{
       const hit = r.medOOP >= r.moop;
-      return `<span class="cost-val cv-mid">${fmtMoney(v)}</span>${hit?` <span class="cost-saving-badge" style="background:#1a0a0a;border-color:#ef444455;color:#fca5a5">= MOOP</span>`:''}`;
+      return `<span class="cost-val cv-mid">${fmtMoney(v)}</span>${hit?` <span class="cost-saving-badge" style="background:#fff0f0;border-color:#fca5a5;color:#dc2626">= MOOP</span>`:''}`;
     }],
     ['Est. Rx OOP',       r=>r.rxOOP,         (v)=>`<span class="cost-val cv-mid">${fmtMoney(v)}</span>`],
     ['Part B Savings',    r=>r.partBSavings,  (v)=>v>0?`<span class="cost-val cv-good">- ${fmtMoney(v)}</span>`:'<span class="cv-na">—</span>'],
@@ -1579,18 +1632,18 @@ function recalcCosts() {
         const diff = val - minNet;
         html += ` <span class="cost-saving-badge">+$${diff.toLocaleString()} more</span>`;
       }
-      return `<td class="cost-cell" style="${isBestCol&&isTot?'background:#0a1a0a;border-color:#22c55e55':isBestCol?'background:#050e05':''}">${html}</td>`;
+      return `<td class="cost-cell" style="${isBestCol&&isTot?'background:#f0fff4;border-color:#22c55e;border-width:1px':isBestCol?'background:#f7fff9':''}">${html}</td>`;
     }).join('');
     return `<tr${isTot?' class="cost-total-row"':''}><td>${lbl}</td>${cells}</tr>`;
   }).join('');
 
   // Best value banner
   const savings = results.length > 1 ? maxNet - minNet : 0;
-  const bestBanner = `<div style="display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#0a1a0a,#0f2318);border:1px solid #22c55e55;border-radius:10px;padding:11px 16px;margin-bottom:12px">
+  const bestBanner = `<div style="display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#f0fff4,#ecfdf5);border:1px solid #86efac;border-radius:10px;padding:11px 16px;margin-bottom:12px">
     <span style="font-size:1.6rem">&#127942;</span>
     <div>
       <div style="font-size:.75rem;font-weight:800;color:var(--green)">Lowest Estimated Annual Cost — Based on Your Utilization Inputs</div>
-      <div style="font-size:.85rem;font-weight:700;color:#fff;margin-top:1px">${eh(costWinner.plan.name)}</div>
+      <div style="font-size:.85rem;font-weight:700;color:var(--text);margin-top:1px">${eh(costWinner.plan.name)}</div>
       <div style="font-size:.7rem;color:var(--muted2);margin-top:1px">${eh(costWinner.plan.org)} &middot; Net est. annual cost: <strong style="color:var(--green)">${fmtMoney(minNet)}</strong>${savings>0?` &middot; Saves <strong style="color:var(--green)">$${savings.toLocaleString()}</strong> vs highest`:''}</div>
     </div>
   </div>`;

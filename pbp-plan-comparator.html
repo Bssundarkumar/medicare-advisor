@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<!-- DATA_META year="2025" updated="2026-06-26 03:39 UTC" plans="8335" -->
+<!-- DATA_META year="2025" updated="2026-06-26 03:55 UTC" plans="8335" -->
 <title>2025 Medicare Plan Advisor</title>
 <style>
 :root{
@@ -743,15 +743,15 @@ input[type=range].priority-slider{flex:1;min-width:120px;accent-color:var(--gree
   <div class="zip-card">
     <div id="zip-icon" style="font-size:2rem;margin-bottom:10px">&#128205;</div>
     <h1 id="zip-title">Find Plans <span>Near You</span></h1>
-    <p id="zip-desc">Enter your ZIP code to see all 2026 Medicare plans available in your area.</p>
+    <p id="zip-desc">Enter your ZIP code to see all 2025 Medicare plans available in your area.</p>
     <div class="zip-row">
       <input id="zipinput" type="text" maxlength="5" placeholder="Enter ZIP code" inputmode="numeric" pattern="[0-9]{5}"/>
       <button class="zip-go" id="zipgo" onclick="lookupZip()">Find Plans &#8594;</button>
     </div>
     <div class="zip-err" id="ziperr"></div>
-    <div class="zip-meta">Covers all 8,083 CMS-filed 2026 Medicare &amp; Part D plans across the US</div>
+    <div class="zip-meta">Covers all 8,335 CMS-filed 2025 Medicare &amp; Part D plans across the US</div>
     <div class="stats-row">
-      <div class="stat"><div class="stat-num">8,083</div><div class="stat-lbl">Total Plans</div></div>
+      <div class="stat"><div class="stat-num">8,335</div><div class="stat-lbl">Total Plans</div></div>
       <div class="stat"><div class="stat-num">52</div><div class="stat-lbl">States &amp; Territories</div></div>
       <div class="stat"><div class="stat-num">600+</div><div class="stat-lbl">Nationwide Plans</div></div>
     </div>
@@ -899,7 +899,7 @@ function selectRole(role){
     document.body.classList.remove('beneficiary-mode');
   } else {
     document.getElementById('zip-title').innerHTML='Find Plans <span>Near You</span>';
-    document.getElementById('zip-desc').textContent='Enter your ZIP code to see all 2026 Medicare plans available in your area.';
+    document.getElementById('zip-desc').textContent='Enter your ZIP code to see all 2025 Medicare plans available in your area.';
     go.className='zip-go';
     document.getElementById('agent-id-filter').style.display='none';
     document.getElementById('comparebtn').className='btn-compare';
